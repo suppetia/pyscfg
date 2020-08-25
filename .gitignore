@@ -1,0 +1,9 @@
+tests/
+venv/
+.idea
+*/__pycache__/
+
+# build relicts
+build/
+dist/
+pyscfg.egg-info/
