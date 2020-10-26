@@ -1,0 +1,8 @@
+CHANGELOG
+
+v0.1.1:
+    - add dict-like "get" method
+    - add representation for Configs and SimpleConfigs
+
+v0.1.0:
+    - initial release with basic features

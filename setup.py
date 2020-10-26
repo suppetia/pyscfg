@@ -2,7 +2,7 @@ from setuptools import setup
 
 
 name = "pyscfg"
-version = "0.1.0"
+version = "0.1.1"
 
 # get list of requirements
 with open('requirements.txt') as f:
@@ -18,7 +18,10 @@ setup(
     version=version,
     author="Christopher Mertens",
     author_email="suppetia@gmx.de",
-    description="simply store/load/modify user configurations",
+    description="simple handling of user configuration",
+    project_urls={
+                    "Source Code": "https://github.com/suppetia/pyscfg"
+                 },
     long_description=long_description,
     long_description_content_type='text/markdown',
     packages=["pyscfg"],

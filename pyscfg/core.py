@@ -41,11 +41,18 @@ class Configs:
         data = self._load()
         return data[item]
 
+    def get(self, item, default=None):
+        data = self._load()
+        return data.get(item, default=default)
+
     def __setitem__(self, key, value):
         self._update({key: value})
 
     def __delitem__(self, key):
         self._remove(key)
+
+    def __repr__(self):
+        return f"Configs({self._load()},\nstore:{type(self.store)})"
 
 
 class SimpleConfigs(Configs):
@@ -62,3 +69,5 @@ class SimpleConfigs(Configs):
                 self.init_if_not_exists(key=key, default=value, save=False)
             self._save()
 
+    def __repr__(self):
+        return f"SimpleConfigs({self._load()},\nstore:{type(self.store)})"
