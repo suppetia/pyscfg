@@ -4,5 +4,8 @@ v0.1.1:
     - add dict-like "get" method
     - add representation for Configs and SimpleConfigs
 
+    - bugfixes:
+        - FileStore.dump now stores data when data is updated
+
 v0.1.0:
     - initial release with basic features

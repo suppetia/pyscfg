@@ -13,7 +13,7 @@ class FileStore(object):
         return self._load()
 
     def dump(self) -> None:
-        if self.data == self.load():
+        if not self.data == self.load():
             self._dump()
 
     def _load(self) -> dict:
