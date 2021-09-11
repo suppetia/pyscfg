@@ -1,20 +1,58 @@
 import yaml
 import os
 import json
+from abc import ABC, abstractmethod
 
 
-class FileStore(object):
+class DataStore(ABC):
 
-    def __init__(self, filename):
+    @abstractmethod
+    def save(self, data: dict) -> None:
+        """save the data from the ConfigsDict to the designated target"""
+
+    @abstractmethod
+    def load(self) -> dict:
+        """load the configs data from the designated target"""
+
+    @abstractmethod
+    def is_empty(self) -> bool:
+        """whether there is data in the store"""
+
+
+class RamStore(DataStore):
+
+    def __init__(self):
+        self._data: dict = dict()
+
+    def save(self, data: dict) -> None:
+        """store the dict in ram"""
+        self._data = data
+
+    def load(self) -> dict:
+        return self._data
+
+    def is_empty(self):
+        return self.load() == {}
+
+
+class FileStore(DataStore):
+
+    def __init__(self, filename: str):
         self.filename = filename
-        self.data = self.load()
 
     def load(self) -> dict:
         return self._load()
 
-    def dump(self) -> None:
-        if not self.data == self.load():
-            self._dump()
+    def save(self, data: dict) -> None:
+        self._dump(data)
+
+    def is_empty(self) -> bool:
+        """return True if the file doesn't exist or no data is stored in the file"""
+        if not os.path.exists(self.filename):
+            return True
+        if self.load() == {}:
+            return True
+        return False
 
     def _load(self) -> dict:
         """
@@ -22,24 +60,11 @@ class FileStore(object):
 
         :return: configurations as a dict
         """
-        pass
 
-    def _dump(self) -> None:
+    def _dump(self, data: dict) -> None:
         """
         store specific saving of data needs to override this function
         """
-
-    def update(self, new_data: dict = None, **kwargs) -> None:
-        self.data.update(new_data, **kwargs)
-
-    def add_config(self, key, value):
-        if self.data.get(key):
-            raise KeyError(f"config {key} already exists")
-        else:
-            self.data[key] = value
-
-    def remove_config(self, key):
-        del self.data[key]
 
     def __repr__(self) -> str:
         return f"FileStore({self.load()})"
@@ -55,9 +80,9 @@ class YAMLFileStore(FileStore):
                 return data
         return {}
 
-    def _dump(self) -> None:
+    def _dump(self, data: dict) -> None:
         with open(self.filename, 'w') as f:
-            yaml.safe_dump(self.data, f)
+            yaml.safe_dump(data, f)
 
     def __repr__(self) -> str:
         return f"YAMLFileStore({self.load()})"
@@ -73,9 +98,9 @@ class JSONFileStore(FileStore):
                     return data
         return {}
 
-    def _dump(self) -> None:
+    def _dump(self, data: dict) -> None:
         with open(self.filename, 'w') as f:
-            json.dump(self.data, f)
+            json.dump(data, f)
 
     def __repr__(self) -> str:
         return f"YAMLFileStore({self.load()})"

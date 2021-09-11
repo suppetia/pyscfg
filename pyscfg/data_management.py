@@ -1,7 +1,8 @@
 from typing import Dict, Union, Any
-from copy import deepcopy
-from dataclasses import dataclass
+from stores import DataStore, RamStore
 
+import logging
+log = logging.getLogger(__file__)
 
 
 class ConfigsDict:
@@ -9,12 +10,30 @@ class ConfigsDict:
     def __init__(self,
                  data: Dict[str, Any] = None,
                  super_dict: "ConfigsDict" = None,
-                 prefix=""):
-        if not isinstance(data, (dict, ConfigsDict)):
-            raise TypeError(f"data should be dict or ConfigsDict but is {type(data)}")
-        self._configs: Dict[str, Any] = self._flatten_dict(data)
+                 prefix: str = "",
+                 data_store: DataStore = None):
+        # if not isinstance(data, (dict, ConfigsDict)):
+        #     raise TypeError(f"data should be dict or ConfigsDict but is {type(data)}")
+        # self._configs: Dict[str, Any] = self._flatten_dict(data)
         self._super_dict = super_dict
         self._prefix = prefix if not prefix.startswith(".") else prefix[1:]
+        if prefix == "":
+            self._data_store = data_store if data_store is not None else RamStore()
+        else:
+            self._data_store = None
+
+        if self._data_store is not None:
+            if data is not None:
+                if not self._data_store.is_empty() \
+                        and not self._flatten_dict(data) == self._flatten_dict(self._data_store.load()):
+                    raise ValueError(f":param data: and :param data_store: are specified but the data in the DataStore does not equal the data passed to the constructor.")
+                else:
+                    self._configs = self._flatten_dict(data)
+                    self.save()
+            else:
+                self._configs = self._flatten_dict(self._data_store.load())
+        else:
+            self._configs = self._flatten_dict(data) if data is not None else dict()
 
     def _flatten_dict(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -56,8 +75,9 @@ class ConfigsDict:
                                super_dict=self,
                                prefix=".".join([self._prefix, levels[0]]))._get_subdict(".".join(levels[1:]))
 
-    def __get_subdict_prefixes(self):
-        return set([k.split(".")[0] for k in self._configs.keys() if len(k.split(".")) > 1])
+    def save(self):
+        if self._data_store is not None:
+            self._data_store.save(self.as_dict())
 
     def _is_valid_key(self, key):
         """
@@ -75,7 +95,7 @@ class ConfigsDict:
 
     def as_dict(self) -> dict:
         dict_repr = {}
-        for k,v in self._configs.items():
+        for k, v in self._configs.items():
             levels = k.split(".")
             dict_repr[levels[0]] = self._get_subdict(levels[0]).as_dict() if len(levels) > 1 else v
 
@@ -110,20 +130,26 @@ class ConfigsDict:
     def _set(self, key, value):
         if not self._is_valid_key(key):
             raise ValueError(f"invalid key: {key}")
-        self._configs.update({key: value})
+        self._configs.update(self._flatten_dict({key: value}))
 
         d = self
         while d._super_dict is not None:
             d_ = d._super_dict
-            print(d._prefix)
 
             new_dict = d_.as_dict()
             new_dict.update({d._prefix.split(".")[-1]: d._configs})
             d_._configs = self._flatten_dict(new_dict)
             d = d_
+            print(d)
+
+        # save changes
+        d.save()
 
     def __setitem__(self, key, value):
         self._set(key, value)
+    #
+    # def __setattr__(self, key, value):
+    #     self._set(key, value)
 
     def __repr__(self):
         return self._configs
@@ -136,6 +162,7 @@ class ConfigsDict:
 if __name__ == "__main__":
     from pprint import pprint
     import sys
+    from stores import get_store
 
     d = {
         "a": {
@@ -153,13 +180,14 @@ if __name__ == "__main__":
         #"a.2": 3
     }
 
-    cfg_dict = ConfigsDict(d)
+    cfg_dict = ConfigsDict(data_store=get_store("configs.yaml"))
     print(cfg_dict._configs)
+    print(cfg_dict._data_store)
 
-    cfg_dict["a"]["c"] = dict(a="A", b="B")
+    cfg_dict["a"]["c"] = dict(a="B", b="B")
     print(cfg_dict._configs)
     # print(cfg_dict["a"]["c"]._prefix)
-    cfg_dict["a"]["c"]["a"] = "B"
+    # cfg_dict["a"]["c"]["a"] = "B"
     print(cfg_dict._configs)
 
     # print(cfg_dict.get("a.a"))
