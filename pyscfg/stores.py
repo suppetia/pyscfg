@@ -106,19 +106,19 @@ class JSONFileStore(FileStore):
         return f"YAMLFileStore({self.load()})"
 
 
-class FileStoreException(Exception):
+class DataStoreException(Exception):
     pass
 
 
-class FileStoreNotFound(FileStoreException):
+class DataStoreNotFound(DataStoreException):
     pass
 
 
-class FileStoreDetectionFailedException(FileStoreException):
+class DataStoreDetectionFailedException(DataStoreException):
     pass
 
 
-def get_store(filename: str, store_type: str = "auto") -> FileStore:
+def get_store(filename: str, store_type: str = "auto") -> DataStore:
     FILESTORE_EXTENSION = {
         "yaml": ["yaml", "yml"],
         "json": ["json"]
@@ -130,11 +130,13 @@ def get_store(filename: str, store_type: str = "auto") -> FileStore:
     else:
         file_ext = ""
 
-    if store_type.lower() in FILESTORE_EXTENSION["yaml"] \
+    if store_type.upper() == "RAM" or filename.upper() == "RAM":
+        return RamStore()
+    elif store_type.lower() in FILESTORE_EXTENSION["yaml"] \
             or file_ext.lower() in FILESTORE_EXTENSION["yaml"]:
         return YAMLFileStore(filename)
     elif store_type.lower() in FILESTORE_EXTENSION["json"] \
             or file_ext.lower() in FILESTORE_EXTENSION["json"]:
         return JSONFileStore(filename)
     else:
-        raise FileStoreDetectionFailedException(f"Failed to identify type of FileStore {filename}")
+        raise DataStoreDetectionFailedException(f"Failed to identify type of FileStore {filename}")

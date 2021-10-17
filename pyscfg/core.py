@@ -1,8 +1,23 @@
 from typing import Dict, Union, Any
 from pyscfg.stores import DataStore, RamStore, get_store
+from pyscfg import PySCFGError
 
 import logging
 log = logging.getLogger(__file__)
+
+
+class ConfigsDictError(PySCFGError):
+    pass
+
+
+class ConfigsDictKeyError(ConfigsDictError):
+    pass
+
+
+class InvalidConfigsDictKeyFormatException(ConfigsDictError):
+
+    def __init__(self, key):
+        super().__init__(f"invalid key: '{key}' - key must be a string")
 
 
 class ConfigsDict:
@@ -68,6 +83,8 @@ class ConfigsDict:
         return dict_repr
 
     def _get(self, key, as_dict: bool = False) -> Union["ConfigsDict", Any]:
+        if not self._is_valid_key(key):
+            raise InvalidConfigsDictKeyFormatException(key)
         levels = key.split(".")
         if len(levels) == 1:
             if key in self._configs.keys():
@@ -92,7 +109,7 @@ class ConfigsDict:
 
     def _set(self, key, value):
         if not self._is_valid_key(key):
-            raise ValueError(f"invalid key: {key}")
+            raise InvalidConfigsDictKeyFormatException(key)
         self._configs.update(self._flatten_dict({key: value}))
 
         ConfigsDict.__update_super_dicts(self)
@@ -130,6 +147,10 @@ class ConfigsDict:
 
     def __delitem__(self, key: str) -> None:
         self._pop(key)
+
+    def __iter__(self):
+        for k, v in self.configs.items():
+            yield k, v
 
     def __repr__(self):
         return self._configs

@@ -1,5 +1,9 @@
 
-__all__ = ["core", "stores", "SimpleConfigs"]
+class PySCFGError(Exception):
+    pass
+
+
+__all__ = ["core", "stores", "SimpleConfigs", "PySCFGError"]
 
 # import SimpleConfigs into root namespace for simplicity
 from .core import SimpleConfigs
