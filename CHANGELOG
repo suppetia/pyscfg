@@ -1,8 +1,14 @@
 CHANGELOG
 
+v0.2.0:
+    - replaced data management using a flattened dict
+      (inspired by https://github.com/tr11/python-configuration; here also new values can be stored or modified)
+    - added new store-type (RamStore) for in-memory storage
+    - added pop method to retrieve removed items or remove items safely
+
 v0.1.1:
-    - add dict-like "get" method
-    - add representation for Configs and SimpleConfigs
+    - added dict-like "get" method
+    - added representation for Configs and SimpleConfigs
 
     - bugfixes:
         - FileStore.dump now stores data when data is updated
