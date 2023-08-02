@@ -1,5 +1,9 @@
 CHANGELOG
 
+v0.2.1:
+    -bugfixes:
+        - resolve discrepancy between data in dict and in DataStore in constructor-method of SimpleConfigs
+
 v0.2.0:
     - replaced data management using a flattened dict
       (inspired by https://github.com/tr11/python-configuration; here also new values can be stored or modified)

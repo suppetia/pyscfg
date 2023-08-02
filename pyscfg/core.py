@@ -227,7 +227,8 @@ class SimpleConfigs(ConfigsDict):
             data = defaults
 
         store_data = store.load()
-        data.update(store_data)
+        data.update(ConfigsDict._flatten_dict(store_data))
+        store.save(data)
 
         super().__init__(data=data, data_store=store)
 
